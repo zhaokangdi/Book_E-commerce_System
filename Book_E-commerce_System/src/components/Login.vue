@@ -4,7 +4,7 @@
       <el-form class="login-container" label-position="left" label-width="0px">
         <h2 class="login_title">哆啦BOOK梦</h2>
         <el-form-item>
-          <el-input type="text" v-model="loginForm.username" auto-complete="off" placeholder="联系方式"></el-input>
+          <el-input type="text" v-model="loginForm.username" auto-complete="off" placeholder="账号"></el-input>
         </el-form-item>
         <el-form-item>
           <el-input type="password" v-model="loginForm.password" auto-complete="off" placeholder="密码"></el-input>
@@ -34,7 +34,7 @@
                 <el-input v-model="userRegister.address" placeholder="请输入通讯地址"></el-input>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" @click="submitForm('userRegister')">立即注册</el-button>
+                <el-button type="primary" @click="register('user')">立即注册</el-button>
                 <el-button @click="resetForm('userRegister')">重置</el-button>
               </el-form-item>
             </el-form>
@@ -61,7 +61,7 @@
                 <el-input type="textarea" :rows="5" v-model="businessRegister.introduction" placeholder="请输入个人简介"></el-input>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" @click="submitForm('businessRegister')">立即注册</el-button>
+                <el-button type="primary" @click="register('business')">立即注册</el-button>
                 <el-button @click="resetForm('businessRegister')">重置</el-button>
               </el-form-item>
             </el-form>
@@ -86,38 +86,87 @@
         },
 
         userRegister: {
+          phone: '',
           name: '',
-          region: '',
-          type: '',
+          password: '',
           address: ''
         },
 
         businessRegister: {
+          phone: '',
           name: '',
-          region: '',
-          type: '',
+          password: '',
           address: '',
           store: '',
           introduction: ''
-        }
+        },
 
+        userList: [
+          {
+            name: '滴滴滴',
+            role: '普通用户',
+            id: '18810760681',
+            address: '吉林省',
+          },
+        ]
       }
     },
 
     methods: {
-      login () {
+      login() {
         this.$axios
-          .post('/login', {
-            username: this.loginForm.username,
-            password: this.loginForm.password
-          })
+          .post('')
           .then(successResponse => {
             if (successResponse.data.code === 200) {
-              this.$router.replace({path: '/index'})
+              alert(successResponse.data.message);
+              var data = successResponse.data.data;
+              this.$router.push({path: '/main', query: {RWbooks: data}});
             }
           })
           .catch(failResponse => {
+            alert("失败！");
           })
+      },
+
+      register(identify) {
+        if(identify == 'user') {
+          this.$axios
+            .post('/login', {
+              id: this.userRegister.phone,
+              username: this.userRegister.name,
+              password: this.userRegister.password,
+              address: this.userRegister.password,
+            })
+            .then(successResponse => {
+              if (successResponse.data.code === 200) {
+                alert('可以');
+                this.dialogRegister = false;
+              }
+            })
+            .catch(failResponse => {
+              alert("失败！");
+            })
+        }else {
+          this.$axios
+            .post('/login', {
+              storeId: '',
+              phone: this.businessRegister.phone,
+              name: this.businessRegister.name,
+              password: this.businessRegister.password,
+              address: this.businessRegister.password,
+              storeName: this.businessRegister.store,
+              introduction: this.businessRegister.introduction,
+            })
+            .then(successResponse => {
+              if (successResponse.data.code === 200) {
+                alert('可以');
+                this.$router.replace({path: '/login'})
+              }
+            })
+            .catch(failResponse => {
+              alert("失败！");
+            })
+        }
       },
 
       handleClick(tab, event) {
@@ -130,17 +179,6 @@
             done();
           })
           .catch(_ => {});
-      },
-
-      submitForm(formName) {
-        this.$refs[formName].validate((valid) => {
-          if (valid) {
-            alert('注册完成!');
-          } else {
-            console.log('注册失败!');
-            return false;
-          }
-        });
       },
 
       resetForm(formName) {
@@ -158,9 +196,11 @@
     background-size: cover;
     position: fixed;
   }
+
   body{
     margin: 0px;
   }
+
   .login-container {
     border-radius: 15px;
     background-clip: padding-box;
@@ -171,11 +211,11 @@
     border: 1px solid #eaeaea;
     box-shadow: 0 0 25px #cac6c6;
   }
+
   .login_title {
     margin: 0px auto 40px auto;
     text-align: center;
     color: #505458;
   }
-
 </style>
 

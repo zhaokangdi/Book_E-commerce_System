@@ -21,13 +21,13 @@
             </template>
 
             <el-menu-item-group>
-              <el-menu-item index="/adminMain">用户列表</el-menu-item>
-              <el-menu-item index="/businessList">商家列表</el-menu-item>
-              <el-menu-item index="/storeList">店铺列表</el-menu-item>
+              <el-menu-item @click="userFunction()">用户列表</el-menu-item>
+              <el-menu-item @click="businessFunction()">商家列表</el-menu-item>
+              <el-menu-item index="/storeList" @click="storeFunction()">店铺列表</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
 
-          <el-menu-item index="/applyCheck">
+          <el-menu-item @click="checkFunction()">
             <i class="el-icon-s-check"></i>
             <span slot="title">申请审核</span>
           </el-menu-item>
@@ -37,9 +37,9 @@
       <el-main>
         <el-card class="box-card" style="width: 100%; height: 99%">
           <el-table
-            :data="businessInfo"
+            :data="storeInfo"
             style="width: 100%"
-            height="250">
+            height="100%">
             <el-table-column
               prop="name"
               label="店铺名称"
@@ -48,10 +48,10 @@
             </el-table-column>
 
             <el-table-column
-              prop="score"
-              label="评分"
+              prop="businessName"
+              label="商家"
               show-overflow-tooltip>
-              <template slot-scope="scope">{{ scope.row.score }}</template>
+              <template slot-scope="scope">{{ scope.row.businessName }}</template>
             </el-table-column>
 
             <el-table-column
@@ -59,13 +59,6 @@
               label="联系方式"
               width="200">
               <template slot-scope="scope">{{ scope.row.phone }}</template>
-            </el-table-column>
-
-            <el-table-column
-              prop="postcode"
-              label="邮编"
-              width="120">
-              <template slot-scope="scope">{{ scope.row.postcode }}</template>
             </el-table-column>
 
             <el-table-column
@@ -78,7 +71,7 @@
             <el-table-column
               prop="operation">
               <template slot-scope="scope">
-                <el-button size="small" type="danger" plain @click="">注销</el-button>
+                <el-button size="small" type="danger" plain @click="deleteStore(scope.row.storeId)">注销</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -91,18 +84,27 @@
 <script>
   export default {
     name: "StoreList",
+    inject: ['reload'],
 
     data() {
       return {
-        businessInfo: [
+        storeInfo: [],
+
+        applyList: [
           {
-            name: '哈尔的书屋',
-            score: '3.5',
-            phone: '18810760681',
-            postcode: '136121',
-            address: '吉林省',
-          }
-        ]
+            name: '弟弟',
+            storeName: '11',
+            phone: 'qq',
+            address: '11',
+          },
+
+          {
+            name: '弟弟',
+            storeName: '11',
+            phone: 'qq',
+            address: '11',
+          },
+        ],
       }
     },
 
@@ -117,7 +119,96 @@
 
       handleClose(key, keyPath) {
         console.log(key, keyPath);
+      },
+
+      userFunction() {
+        this.$axios
+          .post('/user/all') // 请求用户列表
+          .then(successResponse => {
+            if (successResponse.data.code === 200) {
+              var data = successResponse.data.data;
+              this.$router.push({path: '/adminMain', query: {userList: data}});
+            }else {
+              alert(successResponse.data.message);
+            }
+          })
+          .catch(failResponse => {
+            alert("显示失败！");
+          })
+      },
+
+      businessFunction() {
+        this.$axios
+          .post('/business/all') // 请求商家列表
+          .then(successResponse => {
+            if (successResponse.data.code === 200) {
+              var data = successResponse.data.data;
+              this.$router.push({path: '/businessList', query: {businessList: data}});
+            }else {
+              alert(successResponse.data.message);
+            }
+          })
+          .catch(failResponse => {
+            alert("显示失败！");
+          })
+      },
+
+      storeFunction() {
+        this.$axios
+          .post('/store/all') // 请求店铺列表
+          .then(successResponse => {
+            if (successResponse.data.code === 200) {
+              var data = successResponse.data.data;
+              this.storeInfo = data;
+            }else {
+              alert(successResponse.data.message);
+            }
+          })
+          .catch(failResponse => {
+            alert("显示失败！");
+          })
+      },
+
+      checkFunction() {
+        this.$router.push({path: '/applyCheck', query: {applyList: this.applyList}});
+        // this.$axios
+        //   .post('/business/applied') // 请求申请列表
+        //   .then(successResponse => {
+        //     if (successResponse.data.code === 200) {
+        //       var data = successResponse.data.data;
+        //       this.$router.push({path: '/applyCheck', query: {applyList: data}});
+        //     }else {
+        //       alert(successResponse.data.message);
+        //     }
+        //   })
+        //   .catch(failResponse => {
+        //     alert("显示失败！");
+        //   })
+      },
+
+      deleteStore(storeId) {
+        this.$axios
+          .post('/store/delete', {
+            id: storeId,
+          })
+          .then(successResponse => {
+            if (successResponse.data.code === 200) {
+              alert(successResponse.data.message);
+              var data = successResponse.data.data;
+              this.reload();
+              this.$router.push({path: '/storeList', query: {storeList: data}});
+            }else {
+              alert(successResponse.data.message);
+            }
+          })
+          .catch(failResponse => {
+            alert("显示失败！");
+          })
       }
+    },
+
+    mounted: function () {
+      this.storeInfo = this.$route.query.storeList;
     }
   }
 </script>

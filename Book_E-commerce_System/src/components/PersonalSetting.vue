@@ -29,8 +29,8 @@
         <el-tab-pane label="基本信息" name="first">
           <div>
             <el-form label-width="80px" :model="personInfo">
-              <el-form-item label="用户编号">
-                <el-input v-model="personInfo.phone" style="width: 600px; margin-right: 45%"></el-input>
+              <el-form-item label="联系方式">
+                <el-input v-model="personInfo.phone" style="width: 600px; margin-right: 45%" disabled></el-input>
               </el-form-item>
 
               <el-form-item label="用户昵称">
@@ -38,20 +38,17 @@
               </el-form-item>
 
               <el-form-item label="用户身份">
-                <el-input v-model="personInfo.identity" style="width: 370px; margin-right: 11%"></el-input>
-                <el-button type="primary" style="margin-right: 45%" plain @click="assistantDialog = true">助理申请</el-button>
+                <el-input v-model="personInfo.role" style="width: 370px; margin-right: 11%" disabled></el-input>
+                <el-button type="primary" style="margin-right: 45%" plain v-if="personInfo.role === '普通用户'" @click="assistantDialog = true">助理申请</el-button>
+                <el-button type="primary" style="margin-right: 45%" plain v-else disabled>助理申请</el-button>
               </el-form-item>
 
               <el-form-item label="家庭住址">
                 <el-input v-model="personInfo.address" style="width: 600px; margin-right: 45%"></el-input>
               </el-form-item>
 
-              <el-form-item label="邮政编码">
-                <el-input v-model="personInfo.postcode" style="width: 600px; margin-right: 45%"></el-input>
-              </el-form-item>
-
               <el-form-item>
-                <el-button type="success" plain style="width: 200px; margin-right: 10%">确定修改</el-button>
+                <el-button type="success" plain style="width: 200px; margin-right: 10%" @click="infoUpdate()">确定修改</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -69,7 +66,7 @@
               </el-form-item>
 
               <el-form-item>
-                <el-button type="success" plain style="width: 200px; margin-right: 10%">确定修改</el-button>
+                <el-button type="success" plain style="width: 200px; margin-right: 10%" @click="passwordUpdate()">确定修改</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -85,7 +82,7 @@
           </el-form-item>
         </el-form>
         <div>
-          <el-button style="width: 100px" type="primary" @click="assistantDialog = false">申 请</el-button>
+          <el-button style="width: 100px" type="primary" @click="apply()">申 请</el-button>
           <el-button style="width: 100px; margin-left: 20%" @click="assistantDialog = false">取 消</el-button>
         </div>
       </el-dialog>
@@ -96,6 +93,7 @@
 <script>
   export default {
     name: "PersonalSetting",
+    inject: ['reload'],
 
     data() {
       return {
@@ -107,22 +105,12 @@
           storeId: '',
         },
 
-        personInfo: [
-          {
-            phone: '',
-            name: '',
-            identity: '',
-            address: '',
-            postcode: '',
-          }
-        ],
+        personInfo: {},
 
-        personPassword: [
-          {
-            oldPassword: '',
-            newPassword: '',
-          }
-        ]
+        personPassword: {
+          oldPassword: '',
+          newPassword: '',
+        },
       }
     },
 
@@ -134,6 +122,79 @@
       handleClick(tab, event) {
         console.log(tab, event);
       },
+
+      infoUpdate() {
+        this.$axios
+          .post('', {
+            phone: this.$session.get("key"), // 当前用户
+            name: this.storeInfo.name,
+            role: this.storeInfo.role,
+            address: this.storeInfo.address,
+            password: this.storeInfo.password,
+          })
+          .then(successResponse => {
+            if (successResponse.data.code === 200) {
+              alert(successResponse.data.message);
+              var data = successResponse.data.data;
+              this.reload();
+              this.$router.push({path: '/personalSetting', query: {personalInfo: data}});
+            }
+          })
+          .catch(failResponse => {
+            alert('失败！');
+          })
+      },
+
+      passwordUpdate() {
+        if(this.personPassword.oldPassword === this.personInfo.password) {
+          this.$axios
+            .post('', {
+              phone: this.$session.get("key"), // 当前用户
+              name: this.storeInfo.name,
+              role: this.storeInfo.role,
+              address: this.storeInfo.address,
+              password: this.personPassword.newPassword,
+            })
+            .then(successResponse => {
+              if (successResponse.data.code === 200) {
+                alert(successResponse.data.message);
+                var data = successResponse.data.data;
+                this.reload();
+                this.$router.push({path: '/personalSetting', query: {personalInfo: data}});
+              }
+            })
+            .catch(failResponse => {
+              alert('失败！');
+            })
+
+        }else {
+          alert('原密码错误！');
+        }
+      },
+
+      apply() {
+        this.$axios
+          .post('', {
+            useId: this.$session.get("key"), // 当前用户,
+            storeId: this.assistantApply.storeId,
+          })
+          .then(successResponse => {
+            if (successResponse.data.code === 200) {
+              alert(successResponse.data.message);
+              this.assistantDialog = true;
+              var data = successResponse.data.data;
+              this.reload();
+              this.$router.push({path: '/personalSetting', query: {personalInfo: data}});
+            }
+          })
+          .catch(failResponse => {
+            alert('失败！');
+          })
+      },
+    },
+
+    mounted() {
+      this.personInfo = this.$route.query.personalInfo;
     }
   }
 </script>

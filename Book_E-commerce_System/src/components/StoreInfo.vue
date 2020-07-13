@@ -24,56 +24,33 @@
       </el-menu>
     </div>
 
-
     <div style="margin-top: 2px">
       <el-tabs v-model="activeName" @tab-click="handleClick" type="border-card">
         <el-tab-pane label="基本信息" name="first">
           <div>
             <el-form :label-position="labelPosition" label-width="80px" :model="storeInfo">
               <el-form-item label="店铺编号">
-                <el-input v-model="storeInfo.phone" style="width: 600px; margin-right: 45%"></el-input>
+                <el-input v-model="storeInfo.id" style="width: 600px; margin-right: 45%" disabled></el-input>
               </el-form-item>
 
               <el-form-item label="店铺名称">
                 <el-input v-model="storeInfo.name" style="width: 600px; margin-right: 45%"></el-input>
               </el-form-item>
 
-              <el-form-item label="商家昵称">
-                <el-input v-model="storeInfo.businessName" style="width: 600px; margin-right: 45%"></el-input>
+              <el-form-item label="联系方式">
+                <el-input v-model="storeInfo.phone" style="width: 600px; margin-right: 45%"></el-input>
               </el-form-item>
 
               <el-form-item label="店铺地址">
                 <el-input v-model="storeInfo.address" style="width: 600px; margin-right: 45%"></el-input>
               </el-form-item>
 
-              <el-form-item label="创建时间">
-                <el-input v-model="storeInfo.createTime" style="width: 600px; margin-right: 45%"></el-input>
-              </el-form-item>
-
-              <el-form-item label="更新时间">
-                <el-input v-model="storeInfo.updateTime" style="width: 600px; margin-right: 45%"></el-input>
+              <el-form-item label="店铺简介">
+                <el-input v-model="storeInfo.introduction" type="textarea" :rows="5" style="width: 600px; margin-right: 45%"></el-input>
               </el-form-item>
 
               <el-form-item>
-                <el-button type="success" plain style="width: 200px; margin-right: 10%">确定修改</el-button>
-              </el-form-item>
-            </el-form>
-          </div>
-        </el-tab-pane>
-
-        <el-tab-pane label="密码修改" name="second">
-          <div>
-            <el-form :label-position="labelPosition" label-width="80px" :model="storePassword">
-              <el-form-item label="原密码">
-                <el-input v-model="storePassword.oldPassword" style="width: 600px; margin-right: 45%"></el-input>
-              </el-form-item>
-
-              <el-form-item label="新密码">
-                <el-input v-model="storePassword.newPassword" style="width: 600px; margin-right: 45%"></el-input>
-              </el-form-item>
-
-              <el-form-item>
-                <el-button type="success" plain style="width: 200px; margin-right: 10%">确定修改</el-button>
+                <el-button type="success" plain style="width: 200px; margin-right: 10%" @click="infoUpdate()">确定修改</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -86,6 +63,7 @@
 <script>
   export default {
     name: "StoreInfo",
+    inject: ['reload'],
 
     data() {
       return {
@@ -93,23 +71,12 @@
         activeName: 'first',
         labelPosition: 'right',
 
-        storeInfo: [
-          {
-            phone: '18810760681',
-            name: '哈尔的书屋',
-            businessName: '哈尔',
-            address: '北京',
-            createTime: '2020-07-08-08:00',
-            updateTime: '2020-07-08-08:00',
-          }
-        ],
+        storeInfo: {},
 
-        storePassword: [
-          {
-            oldPassword: '',
-            newPassword: '',
-          }
-        ]
+        storePassword: {
+          oldPassword: '',
+          newPassword: '',
+        },
       }
     },
 
@@ -121,6 +88,33 @@
       handleClick(tab, event) {
         console.log(tab, event);
       },
+
+      infoUpdate() {
+        this.$axios
+          .post('', {
+            phone: this.$session.get("key"), // 当前用户
+            id: this.storeInfo.id,
+            name: this.storeInfo.name,
+            phone: this.storeInfo.phone,
+            address: this.storeInfo.address,
+            introduction: this.storeInfo.introduction,
+          })
+          .then(successResponse => {
+            if (successResponse.data.code === 200) {
+              alert(successResponse.data.message);
+              var data = successResponse.data.data;
+              this.reload();
+              this.$router.push({path: '/storeInfo', query: {storeInfo: data}});
+            }
+          })
+          .catch(failResponse => {
+            alert('失败！');
+          })
+      },
+    },
+
+    mounted() {
+      this.storeInfo = this.$route.query.storeInfo;
     }
   }
 </script>

@@ -24,7 +24,6 @@
       </el-menu-item>
     </div>
 
-
     <div style="margin-top: 2px">
       <el-tabs v-model="activeName" @tab-click="handleClick" type="border-card">
         <el-tab-pane label="未通过" name="first">
@@ -37,45 +36,31 @@
                 prop="name"
                 label="姓名"
                 show-overflow-tooltip>
-                <template slot-scope="scope">{{ scope.row.name }}</template>
+                <template slot-scope="scope">{{ scope.row.user.username }}</template>
               </el-table-column>
 
               <el-table-column
                 prop="phone"
                 label="手机号"
                 show-overflow-tooltip>
-                <template slot-scope="scope">{{ scope.row.phone }}</template>
+                <template slot-scope="scope">{{ scope.row.user.id }}</template>
               </el-table-column>
 
               <el-table-column
-                prop="price"
+                prop="address"
                 label="地址"
                 show-overflow-tooltip>
-                <template slot-scope="scope">{{ scope.row.address }}</template>
+                <template slot-scope="scope">{{ scope.row.user.address }}</template>
               </el-table-column>
 
               <el-table-column
                 prop="operation">
                 <template slot-scope="scope">
-                  <el-button size="small" type="success" plain @click="payDialog = true">通过申请</el-button>
-                  <el-button size="small" style="margin-left: 20%" type="danger" plain @click="handleDelete(scope.$index, scope.row)">拒绝申请</el-button>
+                  <el-button size="small" type="success" plain @click="passApply(scope.row.assistant.id)">通过申请</el-button>
+                  <el-button size="small" style="margin-left: 20%" type="danger" plain @click="refuseApply(scope.row.assistant.id)">拒绝申请</el-button>
                 </template>
               </el-table-column>
             </el-table>
-
-            <div>
-              <el-dialog
-                title="付款提示"
-                :visible.sync="payDialog"
-                width="20%">
-                <span class="text">总价: 60元</span>
-
-                <span slot="footer" class="dialog-footer">
-                    <el-button size="small" type="success" plain @click="payDialog = false">确认支付</el-button>
-                    <el-button size="small" type="danger" plain @click="payDialog = false">放弃支付</el-button>
-                  </span>
-              </el-dialog>
-            </div>
           </div>
         </el-tab-pane>
 
@@ -89,14 +74,14 @@
                 prop="name"
                 label="姓名"
                 show-overflow-tooltip>
-                <template slot-scope="scope">{{ scope.row.name }}</template>
+                <template slot-scope="scope">{{ scope.row.user.username }}</template>
               </el-table-column>
 
               <el-table-column
                 prop="phone"
                 label="手机号"
                 show-overflow-tooltip>
-                <template slot-scope="scope">{{ scope.row.phone }}</template>
+                <template slot-scope="scope">{{ scope.row.user.id }}</template>
               </el-table-column>
 
               <el-table-column
@@ -109,24 +94,10 @@
               <el-table-column
                 prop="operation">
                 <template slot-scope="scope">
-                  <el-button size="small" style="margin-left: 40%" type="danger" plain @click="handleDelete(scope.$index, scope.row)">删除助理</el-button>
+                  <el-button size="small" style="margin-left: 40%" type="danger" plain @click="deleteAssistant(scope.row.assistant.id)">删除助理</el-button>
                 </template>
               </el-table-column>
             </el-table>
-
-            <div>
-              <el-dialog
-                title="付款提示"
-                :visible.sync="payDialog"
-                width="20%">
-                <span class="text">总价: 60元</span>
-
-                <span slot="footer" class="dialog-footer">
-                    <el-button size="small" type="success" plain @click="payDialog = false">确认支付</el-button>
-                    <el-button size="small" type="danger" plain @click="payDialog = false">放弃支付</el-button>
-                  </span>
-              </el-dialog>
-            </div>
           </div>
         </el-tab-pane>
       </el-tabs>
@@ -137,23 +108,30 @@
 <script>
   export default {
     name: "AssistantApply",
+    inject: ['reload'],
 
     data() {
       return {
         input: '',
         activeName: 'first',
 
-        notPass: [{
-          name: '滴滴滴',
-          phone: '18810760681',
-          address: '吉林省',
-        }],
+        notPass: {
+          user: {},
 
-        pass: [{
-          name: '滴滴滴',
-          phone: '18810760681',
-          address: '吉林省',
-        }],
+          assistant: {
+            assistantId: '',
+            state: '',
+          }
+        },
+
+        pass: {
+          user: {},
+
+          assistant: {
+            assistantId: '',
+            state: '',
+          }
+        },
       }
     },
 
@@ -163,12 +141,112 @@
       },
 
       handleClick(tab, event) {
-        console.log(tab, event);
+        if(this.activeName === 'first') {
+          this.assistantNoPass();
+        }else {
+          this.$axios  // 获取已通过的助理列表
+            .post('', {
+              phone: this.$session.get("key"), // 当前用户
+            })
+            .then(successResponse => {
+              if (successResponse.data.code === 200) {
+                alert(successResponse.data.message);
+                var data = successResponse.data.data;
+                this.pass = data;
+              }else {
+                alert(successResponse.data.message);
+              }
+            })
+            .catch(failResponse => {
+              alert("失败！");
+            })
+        }
       },
 
-      handleDelete(index, row) {
-        console.log(index, row);
+      assistantNoPass() {
+        this.$axios  // 获取待审核的助理列表
+          .post('', {
+            phone: this.$session.get("key"), // 当前用户
+          })
+          .then(successResponse => {
+            if (successResponse.data.code === 200) {
+              alert(successResponse.data.message);
+              var data = successResponse.data.data;
+              this.reload();
+              this.$router.push({path: '/assistantApply', query: {notPass: data}});
+            }else {
+              alert(successResponse.data.message);
+            }
+          })
+          .catch(failResponse => {
+            alert("失败！");
+          })
       },
+
+      passApply(id) {
+        this.$axios
+          .post('', {
+            id: id,
+          })
+          .then(successResponse => {
+            if (successResponse.data.code === 200) {
+              alert(successResponse.data.message);
+              var data = successResponse.data.data;
+              this.reload();
+              this.$router.push({path: '/assistantApply', query: {notPass: data}});
+            }else {
+              alert(successResponse.data.message);
+            }
+          })
+          .catch(failResponse => {
+            alert("失败！");
+          })
+      },
+
+      refuseApply(id) {
+        this.$axios
+          .post('', {
+            id: id,
+          })
+          .then(successResponse => {
+            if (successResponse.data.code === 200) {
+              alert(successResponse.data.message);
+              var data = successResponse.data.data;
+              this.reload();
+              this.$router.push({path: '/assistantApply', query: {notPass: data}});
+            }else {
+              alert(successResponse.data.message);
+            }
+          })
+          .catch(failResponse => {
+            alert("失败！");
+          })
+      },
+
+      deleteAssistant(id) {
+        this.$axios
+          .post('', {
+            id: id,
+          })
+          .then(successResponse => {
+            if (successResponse.data.code === 200) {
+              alert(successResponse.data.message);
+              var data = successResponse.data.data;
+              this.reload();
+              this.activeName = 'second';
+              this.$router.push({path: '/assistantApply', query: {pass: data}});
+            }else {
+              alert(successResponse.data.message);
+            }
+          })
+          .catch(failResponse => {
+            alert("失败！");
+          })
+      },
+    },
+
+    mounted() {
+      this.notPass = this.$route.query.notPass;
     }
   }
 </script>
