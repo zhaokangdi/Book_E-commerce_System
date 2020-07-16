@@ -1,4 +1,4 @@
-<template >
+<template>
   <el-container style="height: 590px; border: 1px solid #eee">
     <el-header style="text-align: right; font-size: 12px; height: 15%">
       <h1 class="main_title">哆啦BOOK梦后台管理系统</h1>
@@ -21,13 +21,13 @@
             </template>
 
             <el-menu-item-group>
-              <el-menu-item index="/adminMain" @click="userFunction()">用户列表</el-menu-item>
-              <el-menu-item @click="businessFunction()">商家列表</el-menu-item>
-              <el-menu-item @click="storeFunction()">店铺列表</el-menu-item>
+              <el-menu-item index="/adminMain">用户列表</el-menu-item>
+              <el-menu-item index="/businessList">商家列表</el-menu-item>
+              <el-menu-item index="/storeList">店铺列表</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
 
-          <el-menu-item @click="checkFunction()">
+          <el-menu-item index="/applyCheck">
             <i class="el-icon-s-check"></i>
             <span slot="title">申请审核</span>
           </el-menu-item>
@@ -39,26 +39,33 @@
           <el-table
             :data="userInfo"
             style="width: 100%"
-            height="100%">
+            height="250">
             <el-table-column
               prop="name"
               label="昵称"
               show-overflow-tooltip>
-              <template slot-scope="scope">{{ scope.row.username }}</template>
+              <template slot-scope="scope">{{ scope.row.name }}</template>
             </el-table-column>
 
             <el-table-column
               prop="identity"
               label="身份"
               width="100">
-              <template slot-scope="scope">{{ scope.row.role }}</template>
+              <template slot-scope="scope">{{ scope.row.identity }}</template>
             </el-table-column>
 
             <el-table-column
               prop="phone"
               label="手机号"
-              show-overflow-tooltip>
-              <template slot-scope="scope">{{ scope.row.id }}</template>
+              width="200">
+              <template slot-scope="scope">{{ scope.row.phone }}</template>
+            </el-table-column>
+
+            <el-table-column
+              prop="postcode"
+              label="邮编"
+              width="120">
+              <template slot-scope="scope">{{ scope.row.postcode }}</template>
             </el-table-column>
 
             <el-table-column
@@ -71,7 +78,7 @@
             <el-table-column
               prop="operation">
               <template slot-scope="scope">
-                <el-button size="small" type="danger" plain @click="deleteUser(scope.row.id)">注销</el-button>
+                <el-button size="small" type="danger" plain @click="">注销</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -84,10 +91,17 @@
 <script>
   export default {
     name: "AdminMain",
-    inject: ['reload'],
+
     data() {
       return {
         userInfo: [
+          {
+            name: '滴滴滴',
+            identity: '普通用户',
+            phone: '18810760681',
+            postcode: '136121',
+            address: '吉林省',
+          }
         ]
       }
     },
@@ -103,96 +117,7 @@
 
       handleClose(key, keyPath) {
         console.log(key, keyPath);
-      },
-
-      userFunction() {
-        this.$axios
-          .post('/user/all') // 请求用户列表
-          .then(successResponse => {
-            if (successResponse.data.code === 200) {
-              var data = successResponse.data.data;
-              this.userInfo = data;
-            }else {
-              alert(successResponse.data.message);
-            }
-          })
-          .catch(failResponse => {
-
-          })
-      },
-
-      businessFunction() {
-        this.$axios
-          .post('/business/all') // 请求商家列表
-          .then(successResponse => {
-            if (successResponse.data.code === 200) {
-              var data = successResponse.data.data;
-              this.$router.push({path: '/businessList', query: {businessList: data}});
-            }else {
-              alert(successResponse.data.message);
-            }
-          })
-          .catch(failResponse => {
-            alert("显示失败！");
-          })
-      },
-
-      storeFunction() {
-        this.$axios
-          .post('/store/all') // 请求店铺列表
-          .then(successResponse => {
-            if (successResponse.data.code === 200) {
-              var data = successResponse.data.data;
-              this.$router.push({path: '/storeList', query: {storeList: data}});
-            }else {
-              alert(successResponse.data.message);
-            }
-          })
-          .catch(failResponse => {
-            alert("显示失败！");
-          })
-      },
-
-      checkFunction() {
-        this.$axios
-          .post('/business/applied') // 请求申请列表
-          .then(successResponse => {
-            if (successResponse.data.code === 200) {
-              var data = successResponse.data.data;
-              this.$router.push({path: '/applyCheck', query: {applyList: data}});
-            }else {
-              alert(successResponse.data.message);
-            }
-          })
-          .catch(failResponse => {
-
-          })
-      },
-
-      deleteUser(id) {
-        this.$axios
-          .post('/user/delete', {
-            id: id,
-          })
-          .then(successResponse => {
-            if (successResponse.data.code === 200) {
-              alert(successResponse.data.message);
-              var data = successResponse.data.data
-              this.reload()
-              this.$router.push({path: '/adminMain', query: {userList: data}});
-            }else {
-              alert("注销失败！");
-            }
-          })
-          .catch(failResponse => {
-            alert("失败！");
-          })
       }
-    },
-
-    mounted: function () {
-      this.userInfo = this.$route.query.userList
-      console.log(this.userInfo)
     }
   }
 </script>

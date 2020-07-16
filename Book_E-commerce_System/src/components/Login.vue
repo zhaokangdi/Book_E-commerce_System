@@ -4,7 +4,7 @@
       <el-form class="login-container" label-position="left" label-width="0px">
         <h2 class="login_title">哆啦BOOK梦</h2>
         <el-form-item>
-          <el-input type="text" v-model="loginForm.username" auto-complete="off" placeholder="账号"></el-input>
+          <el-input type="text" v-model="loginForm.username" auto-complete="off" placeholder="联系方式"></el-input>
         </el-form-item>
         <el-form-item>
           <el-input type="password" v-model="loginForm.password" auto-complete="off" placeholder="密码"></el-input>
@@ -34,7 +34,7 @@
                 <el-input v-model="userRegister.address" placeholder="请输入通讯地址"></el-input>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" @click="register('user')">立即注册</el-button>
+                <el-button type="primary" @click="submitForm('userRegister')">立即注册</el-button>
                 <el-button @click="resetForm('userRegister')">重置</el-button>
               </el-form-item>
             </el-form>
@@ -57,11 +57,11 @@
               <el-form-item label="店铺名称" prop="store">
                 <el-input v-model="businessRegister.store" placeholder="请输入店铺名称"></el-input>
               </el-form-item>
-              <el-form-item label="店铺简介" prop="introduction">
+              <el-form-item label="个人简介" prop="introduction">
                 <el-input type="textarea" :rows="5" v-model="businessRegister.introduction" placeholder="请输入个人简介"></el-input>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" @click="register('business')">立即注册</el-button>
+                <el-button type="primary" @click="submitForm('businessRegister')">立即注册</el-button>
                 <el-button @click="resetForm('businessRegister')">重置</el-button>
               </el-form-item>
             </el-form>
@@ -86,107 +86,38 @@
         },
 
         userRegister: {
-          phone: '',
           name: '',
-          password: '',
+          region: '',
+          type: '',
           address: ''
         },
 
         businessRegister: {
-          phone: '',
           name: '',
-          password: '',
+          region: '',
+          type: '',
           address: '',
           store: '',
           introduction: ''
         }
+
       }
     },
 
     methods: {
-      login() {
+      login () {
         this.$axios
           .post('/login', {
-            id: this.loginForm.username,
-            password: this.loginForm.password,
+            username: this.loginForm.username,
+            password: this.loginForm.password
           })
           .then(successResponse => {
             if (successResponse.data.code === 200) {
-              if(successResponse.data.message === "系统管理员") {
-                var data = successResponse.data.data
-                this.$router.push({path: '/adminMain', query: {userList: data}});
-                alert(successResponse.data.message);
-              }else {
-                this.$session.set("key",this.loginForm.username);
-                alert(successResponse.data.message)
-                this.$axios
-                  .post('/book/renwensheke',{
-                    id: this.loginForm.username
-                }).then(successResponse => {
-                    if (successResponse.data.code === 200) {
-                      var data = successResponse.data.data;
-                      this.$router.push({path: '/main', query: {mainList: data}});
-                    }
-                  })
-                  .catch(failResponse => {
-                    alert("失败！");
-                  })
-              }
-            }else {
-              alert(successResponse.data.message);
+              this.$router.replace({path: '/index'})
             }
           })
           .catch(failResponse => {
-
           })
-      },
-
-      register(identify) {
-        if(identify == 'user') {
-          this.$axios
-            .post('/register', {
-              id: this.userRegister.phone,
-              username: this.userRegister.name,
-              password: this.userRegister.password,
-              address: this.userRegister.address,
-            })
-            .then(successResponse => {
-              if (successResponse.data.code === 200) {
-                alert(successResponse.data.message);
-                this.dialogRegister = false;
-              }
-              else{
-                alert(successResponse.data.message);
-              }
-            })
-            .catch(failResponse => {
-
-            })
-        }else {
-          alert(this.businessRegister.phone)
-          alert(this.businessRegister.name)
-          this.$axios
-            .post('/business/register', {
-              phone: this.businessRegister.phone,
-              name: this.businessRegister.name,
-              password: this.businessRegister.password,
-              address: this.businessRegister.address,
-              storeName: this.businessRegister.store,
-              introduction: this.businessRegister.introduction,
-            })
-            .then(successResponse => {
-              if (successResponse.data.code === 200) {
-                alert(successResponse.data.message);
-                this.dialogRegister = false;
-              }
-              else{
-                alert(successResponse.data.message);
-              }
-            })
-            .catch(failResponse => {
-
-            })
-        }
       },
 
       handleClick(tab, event) {
@@ -199,6 +130,17 @@
             done();
           })
           .catch(_ => {});
+      },
+
+      submitForm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            alert('注册完成!');
+          } else {
+            console.log('注册失败!');
+            return false;
+          }
+        });
       },
 
       resetForm(formName) {
@@ -216,11 +158,9 @@
     background-size: cover;
     position: fixed;
   }
-
   body{
     margin: 0px;
   }
-
   .login-container {
     border-radius: 15px;
     background-clip: padding-box;
@@ -231,11 +171,11 @@
     border: 1px solid #eaeaea;
     box-shadow: 0 0 25px #cac6c6;
   }
-
   .login_title {
     margin: 0px auto 40px auto;
     text-align: center;
     color: #505458;
   }
+
 </style>
 
