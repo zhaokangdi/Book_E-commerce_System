@@ -16,7 +16,6 @@ import AdminMain from "../components/AdminMain";
 import BusinessList from "../components/BusinessList";
 import StoreList from "../components/StoreList";
 import ApplyCheck from "../components/ApplyCheck";
-import SearchResult from "../components/SearchResult";
 
 Vue.use(Router)
 Vue.use(ElementUI)
@@ -24,7 +23,7 @@ Vue.use(ElementUI)
 export default new Router({
   routes: [
     {
-      path: '/login',
+      path: '/',
       name: 'Login',
       component: Login
     },
@@ -33,12 +32,6 @@ export default new Router({
       path: '/main',
       name: 'Main',
       component: Main
-    },
-
-    {
-      path: '/searchResult',
-      name: 'SearchResult',
-      component: SearchResult,
     },
 
     {

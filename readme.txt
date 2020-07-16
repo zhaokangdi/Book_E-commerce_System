@@ -1,0 +1,13 @@
+AdminMain：项目管理员首页
+ApplyCheck：项目管理员处理店铺/商家申请
+AssistantApply：商家处理商家助理申请
+BookInfo：书籍详情（可添加到购物车，或直接购买）
+BusinessList：项目管理员查看商家列表
+Login：登录注册
+Main：普通用户/商家/商家助理登录后首页（不同类别图书显示，推荐图书）
+Order：用户查看自己的订单
+PersonalSetting：用户个人信息（普通用户可在此处申请成为商家助理）
+ShopCart：用户的购物车
+Store：商家店铺管理
+StoreInfo：商家店铺信息
+StoreList：管理员查看店铺列表
